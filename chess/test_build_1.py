@@ -1,6 +1,5 @@
 """CONVENTIONS: positions are done row-column from the bottom left and are both numbers. This corresponds to the
 alpha-number system in traditional chess while being computationally useful. they are specified as tuples"""
-import itertools
 
 WHITE = "white"
 BLACK = "black"
@@ -228,7 +227,8 @@ class Pawn(Piece):
         super().__init__(color, name)
         self.name = name
         self.Color = color
-        # of course, the smallest piece is the hardest to code. direction should be either 1 or -1, should be -1 if the pawn is traveling "backwards"
+        # of course, the smallest piece is the hardest to code. direction should be either 1 or -1, should be -1 if
+        # the pawn is traveling "backwards"
         self.direction = direction
 
     def available_moves(self, x, y, gameboard, Color=None):

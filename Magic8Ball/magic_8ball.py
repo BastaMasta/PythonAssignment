@@ -21,8 +21,8 @@ def magic_8ball():
             mini_str = " again"
             i += 1
 
-        run_inp = input("\nDo you want to Shake the Magic 8-Ball{}? \n [press Enter to shake again, or enter q "
-                        "to quit]\n".format(mini_str))
+        run_inp = input("\nDo you want to Shake the Magic 8-Ball{}? \n [press Enter to shake{}, or enter q "
+                        "to quit]\n".format(mini_str, mini_str))
         if run_inp.lower() == 'q':
             print("Ending program [Destroying the Magic 8-Ball] ....")
             time.sleep(2)
