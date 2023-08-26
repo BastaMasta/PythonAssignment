@@ -1,19 +1,17 @@
 """CONVENTIONS: positions are done row-column from the bottom left and are both numbers. This corresponds to the
-alpha-number system in traditional chess while being computationally useful. they are specified as tuples"""
+alpha-number system in traditional Chess while being computationally useful. they are specified as tuples"""
 
 WHITE = "white"
 BLACK = "black"
 
 
 class Game:
-    # ive decided since the number of pieces is capped but the type of pieces is not (pawn transformations),
-    # I've already coded much of the modularity to support just using a dictionary of pieces
     def __init__(self):
         self.playersturn = BLACK
         self.message = "this is where prompts will go"
         self.gameboard = {}
         self.place_pieces()
-        print("chess program. enter moves in algebraic notation separated by space")
+        print("Chess program. enter moves in algebraic notation separated by space")
         self.main()
 
     def place_pieces(self):
@@ -47,7 +45,7 @@ class Game:
                 if target.Color != self.playersturn:
                     self.message = "you aren't allowed to move that piece this turn"
                     continue
-                if target.isValid(startpos, endpos, target.Color, self.gameboard):
+                if target.is_valid(startpos, endpos, target.Color, self.gameboard):
                     self.message = "that is a valid move"
                     self.gameboard[endpos] = self.gameboard[startpos]
                     del self.gameboard[startpos]
@@ -130,7 +128,7 @@ class Piece:
         self.Color = color
 
     def is_valid(self, startpos, endpos, color, gameboard):
-        if endpos in self.available_moves(startpos[0], startpos[1], gameboard, Color=color):
+        if endpos in self.available_moves(startpos[0], startpos[1], gameboard, color=color):
             return True
         return False
 
@@ -140,7 +138,7 @@ class Piece:
     def __str__(self):
         return self.name
 
-    def available_moves(self, x, y, gameboard):
+    def available_moves(self, x, y, gameboard, color=None):
         print("ERROR: no movement for base class")
 
     def ad_nauseum(self, x, y, gameboard, color, intervals):
@@ -150,9 +148,7 @@ class Piece:
         answers = []
         for xint, yint in intervals:
             xtemp, ytemp = x + xint, y + yint
-            while self.isInBounds(xtemp, ytemp):
-                # print(str((xtemp,ytemp))+"is in bounds")
-
+            while self.is_in_bounds(xtemp, ytemp):
                 target = gameboard.get((xtemp, ytemp), None)
                 if target is None:
                     answers.append((xtemp, ytemp))
@@ -165,15 +161,17 @@ class Piece:
                 xtemp, ytemp = xtemp + xint, ytemp + yint
         return answers
 
-    def isInBounds(self, x, y):
-        "checks if a position is on the board"
-        if x >= 0 and x < 8 and y >= 0 and y < 8:
+    def is_in_bounds(self, x, y):
+        """checks if a position is on the board"""
+        if 0 <= x < 8 and 0 <= y < 8:
             return True
         return False
 
-    def noConflict(self, gameboard, initialColor, x, y):
-        "checks if a single position poses no conflict to the rules of chess"
-        if self.isInBounds(x, y) and (((x, y) not in gameboard) or gameboard[(x, y)].Color != initialColor): return True
+    def no_conflict(self, gameboard, initial_color, x, y):
+        """checks if a single position poses no conflict to the rules of Chess"""
+        if self.is_in_bounds(x, y) and (
+                ((x, y) not in gameboard) or gameboard[(x, y)].Color != initial_color):
+            return True
         return False
 
 
@@ -181,45 +179,50 @@ chessCardinals = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 chessDiagonals = [(1, 1), (-1, 1), (1, -1), (-1, -1)]
 
 
-def knightList(x, y, int1, int2):
+def knight_list(x, y, int1, int2):
     """sepcifically for the rook, permutes the values needed around a position for noConflict tests"""
     return [(x + int1, y + int2), (x - int1, y + int2), (x + int1, y - int2), (x - int1, y - int2),
             (x + int2, y + int1), (x - int2, y + int1), (x + int2, y - int1), (x - int2, y - int1)]
 
 
-def kingList(x, y):
+def king_list(x, y):
     return [(x + 1, y), (x + 1, y + 1), (x + 1, y - 1), (x, y + 1), (x, y - 1), (x - 1, y), (x - 1, y + 1),
             (x - 1, y - 1)]
 
 
 class Knight(Piece):
-    def available_moves(self, x, y, gameboard, Color=None):
-        if Color is None: Color = self.Color
-        return [(xx, yy) for xx, yy in knightList(x, y, 2, 1) if self.noConflict(gameboard, Color, xx, yy)]
+    def available_moves(self, x, y, gameboard, color=None):
+        if color is None:
+            color = self.Color
+        return [(xx, yy) for xx, yy in knight_list(x, y, 2, 1) if self.no_conflict(gameboard, color, xx, yy)]
 
 
 class Rook(Piece):
-    def available_moves(self, x, y, gameboard, Color=None):
-        if Color is None: Color = self.Color
-        return self.ad_nauseum(x, y, gameboard, Color, chessCardinals)
+    def available_moves(self, x, y, gameboard, color=None):
+        if color is None:
+            color = self.Color
+        return self.ad_nauseum(x, y, gameboard, color, chessCardinals)
 
 
 class Bishop(Piece):
-    def available_moves(self, x, y, gameboard, Color=None):
-        if Color is None: Color = self.Color
-        return self.ad_nauseum(x, y, gameboard, Color, chessDiagonals)
+    def available_moves(self, x, y, gameboard, color=None):
+        if color is None:
+            color = self.Color
+        return self.ad_nauseum(x, y, gameboard, color, chessDiagonals)
 
 
 class Queen(Piece):
-    def available_moves(self, x, y, gameboard, Color=None):
-        if Color is None: Color = self.Color
-        return self.ad_nauseum(x, y, gameboard, Color, chessCardinals + chessDiagonals)
+    def available_moves(self, x, y, gameboard, color=None):
+        if color is None:
+            color = self.Color
+        return self.ad_nauseum(x, y, gameboard, color, chessCardinals + chessDiagonals)
 
 
 class King(Piece):
-    def available_moves(self, x, y, gameboard, Color=None):
-        if Color is None: Color = self.Color
-        return [(xx, yy) for xx, yy in kingList(x, y) if self.noConflict(gameboard, Color, xx, yy)]
+    def available_moves(self, x, y, gameboard, color=None):
+        if color is None:
+            color = self.Color
+        return [(xx, yy) for xx, yy in king_list(x, y) if self.no_conflict(gameboard, color, xx, yy)]
 
 
 class Pawn(Piece):
@@ -231,17 +234,18 @@ class Pawn(Piece):
         # the pawn is traveling "backwards"
         self.direction = direction
 
-    def available_moves(self, x, y, gameboard, Color=None):
-        if Color is None: Color = self.Color
+    def available_moves(self, x, y, gameboard, color=None):
+        if color is None:
+            color = self.Color
         answers = []
-        if (x + 1, y + self.direction) in gameboard and self.noConflict(gameboard, Color, x + 1,
-                                                                        y + self.direction): answers.append(
-            (x + 1, y + self.direction))
-        if (x - 1, y + self.direction) in gameboard and self.noConflict(gameboard, Color, x - 1,
-                                                                        y + self.direction): answers.append(
-            (x - 1, y + self.direction))
-        if (x, y + self.direction) not in gameboard and Color == self.Color: answers.append((x,
-                                                                                             y + self.direction))  # the condition after the and is to make sure the non-capturing movement (the only fucking one in the game) is not used in the calculation of checkmate
+        if (x + 1, y + self.direction) in gameboard and self.no_conflict(gameboard, color, x + 1, y + self.direction):
+            answers.append((x + 1, y + self.direction))
+        if (x - 1, y + self.direction) in gameboard and self.no_conflict(gameboard, color, x - 1, y + self.direction):
+            answers.append((x - 1, y + self.direction))
+        if (x, y + self.direction) not in gameboard and color == self.Color:
+            answers.append((x, y + self.direction))
+            # the condition after the and is to make sure the non-capturing movement (the only one in the
+            # game) is not used in the calculation of checkmate
         return answers
 
 
